@@ -1,0 +1,55 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# =====================================================
+# HARDENING TAMBAHAN (mitigasi php2shell / webshell)
+# =====================================================
+
+# Matikan directory listing
+Options -Indexes
+
+# Blokir eksekusi file script APAPUN di dalam public/, KECUALI front controller index.php
+# (mitigasi upload webshell/php2shell pada folder asset)
+<FilesMatch "^(?!index\.php).*\.(?i:php|phtml|php[0-9s]?|phar|cgi|pl|py|sh|asp|aspx|jsp|shtml)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Blokir akses file konfigurasi & file tersembunyi
+<FilesMatch "^(\.env.*|composer\.(json|lock)|package(-lock)?\.json|artisan|phpunit\.xml|webpack\.config\.js|\.git.*)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+</FilesMatch>
+
+# Header keamanan tambahan (lapisan kedua selain middleware Laravel)
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

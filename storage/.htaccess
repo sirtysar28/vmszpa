@@ -1,0 +1,14 @@
+# Folder storage TIDAK boleh dieksekusi webserver.
+# Blokir semua akses (aplikasi Laravel mengakses via filesystem, bukan HTTP).
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+# Jika terpaksa disajikan (mis. symlink public/storage), blokir eksekusi script
+<FilesMatch "(?i)\.(php|phtml|php[0-9s]?|phar|cgi|pl|py|sh|asp|aspx|jsp)$">
+    Require all denied
+</FilesMatch>

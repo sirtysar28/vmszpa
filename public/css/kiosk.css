@@ -1,0 +1,249 @@
+/* ============================================================
+   VMS ZPA — KIOSK TABLET (mode tamu, pos security)
+   Fullscreen, tombol besar, touch friendly
+   ============================================================ */
+
+:root {
+  --k-brand: #0b5cab;
+  --k-brand-deep: #052a52;
+  --k-accent: #0ea5e9;
+  --k-green: #059669;
+  --k-red: #dc2626;
+  --k-ink: #0f172a;
+  --k-mute: #64748b;
+  --k-line: #e2e8f0;
+  --k-bg: #f1f5f9;
+  --k-radius: 20px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  color: var(--k-ink); font-size: 16px; line-height: 1.5;
+  min-height: 100vh; min-height: 100dvh;
+  overflow-x: hidden; overflow-x: clip; /* cegah geser horizontal di mobile */
+  background:
+    radial-gradient(1000px 600px at 110% -10%, rgba(14, 165, 233, .14), transparent 60%),
+    radial-gradient(800px 600px at -10% 110%, rgba(11, 92, 171, .1), transparent 55%),
+    var(--k-bg);
+  display: flex; flex-direction: column;
+}
+
+/* ============ HEADER KIOSK ============ */
+.k-header {
+  background: linear-gradient(140deg, var(--k-brand-deep) 0%, var(--k-brand) 60%, #0a6dc2 100%);
+  color: #fff; padding: 1.3rem 1.6rem; position: relative; overflow: hidden;
+}
+.k-header::before {
+  content: ""; position: absolute; inset: 0; opacity: .12; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.7) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+.k-header-inner {
+  position: relative; max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap;
+}
+.k-header img {
+  height: 54px; width: auto; object-fit: contain; flex: none;
+  background: #fff; border-radius: 12px; padding: 6px 10px; box-sizing: content-box;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.3));
+}
+.k-welcome small { display: block; font-size: .8rem; letter-spacing: .22em; text-transform: uppercase; color: #9fd3f6; margin-bottom: .25rem; }
+.k-welcome h1 { font-size: clamp(1.4rem, 3.5vw, 2rem); font-weight: 800; line-height: 1.2; }
+.k-clock { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; }
+.k-clock b { font-size: clamp(1.5rem, 3.5vw, 2.1rem); font-weight: 800; display: block; line-height: 1.1; }
+.k-clock small { color: #bfe0f8; font-size: .85rem; }
+
+/* ============ KONTEN ============ */
+.k-main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 1.6rem 1.6rem 2rem; }
+
+/* Kartu counter check-in / check-out */
+.k-counters { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.k-counter {
+  border-radius: var(--k-radius); padding: 1.4rem 1.6rem; color: #fff; position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 1.2rem; box-shadow: 0 14px 34px rgba(5, 42, 82, .22);
+}
+.k-counter.in { background: linear-gradient(135deg, #047857, #10b981); }
+.k-counter.out { background: linear-gradient(135deg, #b91c1c, #f87171); }
+.k-counter .ico {
+  width: 66px; height: 66px; border-radius: 18px; background: rgba(255, 255, 255, .18);
+  display: flex; align-items: center; justify-content: center; flex: none;
+}
+.k-counter .ico svg { width: 34px; height: 34px; }
+.k-counter b { display: block; font-size: 2.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.k-counter small { font-size: .95rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .92; }
+.k-counter .didalam {
+  position: absolute; top: .9rem; right: 1rem; background: rgba(255,255,255,.2);
+  font-size: .72rem; font-weight: 700; padding: .3rem .7rem; border-radius: 999px;
+}
+
+/* Tombol aksi besar kiosk */
+.k-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 1.4rem; }
+.k-big-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .7rem;
+  min-height: 130px; padding: 1.6rem; border: none; border-radius: var(--k-radius);
+  font: 800 clamp(1rem, 2.6vw, 1.35rem)/1.2 inherit; letter-spacing: .04em; cursor: pointer;
+  color: #fff; text-decoration: none !important; transition: transform .15s, box-shadow .15s;
+}
+.k-big-btn svg { width: 46px; height: 46px; }
+.k-big-btn small { font-size: .8rem; font-weight: 500; opacity: .85; letter-spacing: 0; }
+.k-big-btn.blue { background: linear-gradient(135deg, var(--k-brand) 0%, var(--k-accent) 100%); box-shadow: 0 14px 30px rgba(11, 92, 171, .35); }
+.k-big-btn.orange { background: linear-gradient(135deg, #c2410c, #fb923c); box-shadow: 0 14px 30px rgba(194, 65, 12, .35); }
+.k-big-btn.green { background: linear-gradient(135deg, #047857, #10b981); box-shadow: 0 14px 30px rgba(4, 120, 87, .35); }
+.k-big-btn:active { transform: scale(.97); }
+
+/* Kartu umum */
+.k-card {
+  background: #fff; border-radius: var(--k-radius); box-shadow: 0 8px 30px rgba(5, 42, 82, .1);
+  padding: 1.7rem; border: 1px solid rgba(226, 232, 240, .8);
+}
+.k-card h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: .3rem; display: flex; align-items: center; gap: .6rem; }
+.k-card h2 svg { width: 24px; height: 24px; color: var(--k-brand); }
+.k-card .k-sub { color: var(--k-mute); font-size: .92rem; margin-bottom: 1.4rem; }
+
+/* Pilihan sudah pernah / baru */
+.k-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: .5rem; }
+.k-choice a {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: .8rem;
+  padding: 2rem 1.4rem; border-radius: var(--k-radius); text-decoration: none !important;
+  border: 2.5px dashed #cbd5e1; color: var(--k-ink); transition: all .18s; background: #f8fafc;
+}
+.k-choice a svg { width: 52px; height: 52px; color: var(--k-brand); }
+.k-choice a b { font-size: 1.15rem; }
+.k-choice a small { color: var(--k-mute); }
+.k-choice a:hover { border-color: var(--k-accent); background: var(--k-brand); color: #fff; transform: translateY(-3px); box-shadow: 0 16px 34px rgba(11,92,171,.3); }
+.k-choice a:hover svg { color: #a5e3ff; }
+.k-choice a:hover small { color: #cfe8fb; }
+
+/* Form kiosk */
+.form-group { margin-bottom: 1.15rem; }
+.form-label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: .45rem; }
+.form-label .req { color: var(--k-red); }
+.form-control {
+  width: 100%; padding: .95rem 1.15rem; font: 600 1.02rem inherit;
+  border: 2px solid var(--k-line); border-radius: 14px; background: #fff; color: var(--k-ink);
+  outline: none; transition: border .15s, box-shadow .15s; appearance: none;
+}
+.form-control:focus { border-color: var(--k-brand); box-shadow: 0 0 0 5px rgba(11, 92, 171, .13); }
+.form-control.is-invalid { border-color: var(--k-red); }
+select.form-control {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 1.1rem center; padding-right: 3rem;
+}
+textarea.form-control { min-height: 110px; resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
+.invalid-feedback { display: block; color: var(--k-red); font-size: .83rem; margin-top: .35rem; font-weight: 600; }
+.form-hint { font-size: .78rem; color: var(--k-mute); margin-top: .3rem; }
+
+/* Chips pilihan cepat tujuan */
+.chips { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .6rem; }
+.chip {
+  border: 1.5px solid var(--k-line); background: #f8fafc; border-radius: 999px;
+  padding: .5rem 1rem; font: 600 .85rem inherit; color: var(--k-ink); cursor: pointer;
+}
+.chip:hover { border-color: var(--k-accent); background: var(--k-brand); color: #fff; }
+
+/* Daftar hasil pencarian / list checkout */
+.k-list { display: grid; gap: .8rem; margin-top: .3rem; }
+.k-item {
+  display: flex; align-items: center; gap: 1rem; width: 100%;
+  background: #f8fafc; border: 2px solid var(--k-line); border-radius: 16px;
+  padding: 1rem 1.2rem; text-align: left; cursor: pointer; transition: all .15s;
+  font: inherit; color: inherit;
+}
+.k-item:hover { border-color: var(--k-accent); background: #eff8ff; transform: translateX(4px); }
+.k-item .avatar-k {
+  width: 54px; height: 54px; border-radius: 14px; flex: none;
+  background: linear-gradient(135deg, var(--k-brand), var(--k-accent));
+  color: #fff; font-weight: 800; font-size: 1.15rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.k-item .info { flex: 1; min-width: 0; }
+.k-item .info b { display: block; font-size: 1.02rem; }
+.k-item .info small { color: var(--k-mute); display: block; }
+.k-item .go { flex: none; color: var(--k-mute); }
+.k-item .go svg { width: 26px; height: 26px; }
+.k-item form { display: flex; flex: 1; align-items: center; gap: 1rem; background: none; border: none; padding: 0; margin: 0; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+
+/* Badge kode tamu */
+.badge-code {
+  display: inline-block; background: #e8f1fb; color: #073d75; border: 1px dashed #9cc3ea;
+  font-family: ui-monospace, monospace; font-weight: 700; font-size: .82rem;
+  padding: .3rem .7rem; border-radius: 8px; letter-spacing: .05em;
+}
+
+/* Alert kiosk */
+.k-alert {
+  display: flex; gap: .8rem; align-items: flex-start; border-radius: 14px;
+  padding: 1rem 1.2rem; margin-bottom: 1.2rem; font-weight: 600; font-size: .95rem;
+}
+.k-alert svg { width: 22px; height: 22px; flex: none; margin-top: 1px; }
+.k-alert.success { background: #ecfdf5; color: #065f46; border: 1.5px solid #a7f3d0; }
+.k-alert.error { background: #fef2f2; color: #991b1b; border: 1.5px solid #fecaca; }
+
+/* Baris tombol aksi */
+.k-actions-row { display: flex; gap: .9rem; margin-top: 1.5rem; flex-wrap: wrap; }
+.k-actions-row .btn { flex: 1; min-width: 150px; }
+
+/* Tombol umum kiosk */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  padding: .85rem 1.3rem; border: none; border-radius: 14px;
+  font: 700 1rem inherit; cursor: pointer; text-decoration: none !important;
+  transition: all .15s; white-space: nowrap; color: var(--k-ink); background: #f1f5f9;
+}
+.btn-primary { background: linear-gradient(135deg, var(--k-brand), var(--k-accent)); color: #fff; box-shadow: 0 10px 24px rgba(11, 92, 171, .35); }
+.btn-primary:active { transform: scale(.97); }
+.btn-outline { background: #fff; border: 2px solid var(--k-line); color: var(--k-ink); }
+.btn-outline:hover { border-color: var(--k-accent); color: var(--k-brand); }
+
+/* Footer kiosk */
+.k-footer {
+  text-align: center; padding: 1.1rem 1rem calc(1.1rem + env(safe-area-inset-bottom));
+  font-size: .82rem; color: var(--k-mute);
+}
+.k-footer a { color: var(--k-brand); font-weight: 700; text-decoration: none; }
+.k-footer a:hover { text-decoration: underline; }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 860px) {
+  .k-header { padding: 1.1rem 1.2rem; }
+  .k-header img { height: 42px; flex: none; }
+  .k-clock b { font-size: 1.4rem; }
+  .k-main { padding: 1.2rem 1rem 1.6rem; }
+  .k-counters, .k-actions, .k-choice, .form-row { grid-template-columns: 1fr; }
+  .k-counter b { font-size: 2rem; }
+  .k-big-btn { min-height: 96px; padding: 1.2rem; }
+  .k-big-btn svg { width: 36px; height: 36px; }
+  .k-card { padding: 1.2rem; border-radius: 16px; }
+}
+@media (max-width: 600px) {
+  /* Header mobile: logo + jam di baris atas, teks welcome pindah ke baris bawah (full width)
+     supaya logo tidak kepotong/ke-squeeze */
+  .k-header { padding: .9rem 1rem; }
+  .k-header-inner { flex-wrap: wrap; gap: .6rem .8rem; }
+  .k-header img { height: 38px; padding: 5px 8px; border-radius: 10px; }
+  .k-clock { margin-left: auto; max-width: 58%; }
+  .k-clock b { font-size: 1.25rem; }
+  .k-clock small { font-size: .75rem; white-space: normal; line-height: 1.25; }
+  .k-welcome { flex: 1 1 100%; order: 3; }
+  .k-welcome small { font-size: .7rem; letter-spacing: .18em; }
+  .k-welcome h1 { font-size: 1.2rem; }
+}
+@media (max-width: 400px) {
+  /* Layar sangat sempit (320-400px) */
+  .k-header { padding: .75rem .8rem; }
+  .k-header-inner { gap: .5rem .6rem; }
+  .k-header img { height: 33px; padding: 4px 6px; border-radius: 8px; }
+  .k-clock { max-width: 62%; }
+  .k-clock b { font-size: 1.1rem; }
+  .k-clock small { font-size: .68rem; }
+  .k-welcome h1 { font-size: 1.02rem; }
+  .k-welcome small { font-size: .62rem; letter-spacing: .12em; }
+}
+@media (max-width: 480px) {
+  .k-header-inner { gap: .8rem; }
+  .k-welcome h1 { font-size: 1.15rem; }
+  .k-item .avatar-k { width: 44px; height: 44px; font-size: .95rem; }
+}
