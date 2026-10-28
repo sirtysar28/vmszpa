@@ -6,9 +6,13 @@
 <div class="page-head">
     <div>
         <h1>Data Tamu</h1>
-        <p>Rekapitulasi seluruh kunjungan tamu: check-in, check-out, tujuan, dan kendaraan.</p>
+        <p>Rekapitulasi seluruh kunjungan tamu. Check-in &amp; check-out dilakukan dari <a href="{{ route('kiosk.index') }}" target="_blank" rel="noopener">Kiosk</a>.</p>
     </div>
     <div class="actions">
+        <a href="{{ route('master-tamu.index') }}" class="btn btn-soft">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+            Master Tamu
+        </a>
         <a href="{{ route('tamu.export', request()->query()) }}" class="btn btn-outline">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
             Export CSV
@@ -60,6 +64,7 @@
                         <th>Tamu</th>
                         <th>No HP</th>
                         <th>Perusahaan</th>
+                        <th>Departemen</th>
                         <th>Check-In</th>
                         <th>Check-Out</th>
                         <th>Tujuan</th>
@@ -79,6 +84,7 @@
                         </td>
                         <td>{{ $visit->guest->phone }}</td>
                         <td>{{ $visit->guest->company ?: '—' }}</td>
+                        <td>{{ $visit->department?->name ?: '—' }}</td>
                         <td>{{ $visit->check_in_at->translatedFormat('d M Y H:i') }}</td>
                         <td>{{ $visit->check_out_at?->translatedFormat('d M Y H:i') ?? '—' }}</td>
                         <td>{{ $visit->purpose }}</td>
@@ -90,15 +96,6 @@
                         <td>{{ $visit->notes ?: '—' }}</td>
                         <td class="no-print">
                             <div class="flex wrap gap-2">
-                                @if ($visit->check_out_at === null)
-                                    <form method="POST" action="{{ route('tamu.forceCheckout', $visit) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-sm btn-success" title="Check-out manual">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-                                            Check-out
-                                        </button>
-                                    </form>
-                                @endif
                                 @if (auth()->user()->isAdmin())
                                     <form method="POST" action="{{ route('tamu.destroy', $visit) }}"
                                           data-confirm="Hapus data kunjungan {{ addslashes($visit->guest->name) }}?">
@@ -113,7 +110,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="table-empty">
+                        <td colspan="12" class="table-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6"/></svg>
                             Tidak ada data yang cocok dengan filter.
                         </td>

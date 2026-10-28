@@ -27,7 +27,7 @@
         <div class="table-wrap">
             <table class="table" style="min-width:720px">
                 <thead>
-                    <tr><th>Nama</th><th>Email</th><th>Role</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr>
+                    <tr><th>Nama</th><th>Email</th><th>Role</th><th>Departemen</th><th>Status</th><th>Dibuat</th><th>Aksi</th></tr>
                 </thead>
                 <tbody>
                 @forelse ($users as $user)
@@ -42,10 +42,15 @@
                         <td>
                             @if ($user->isAdmin())
                                 <span class="badge badge-code">Administrator</span>
+                            @elseif ($user->isManager())
+                                <span class="badge" style="background:#fff7ed;color:#c2410c">Manager</span>
+                            @elseif ($user->isPenerima())
+                                <span class="badge badge-in">Penerima Tamu</span>
                             @else
                                 <span class="badge badge-out">Petugas</span>
                             @endif
                         </td>
+                        <td>@if ($user->department) {{ $user->department->name }} @else <span class="text-mute">Semua</span> @endif</td>
                         <td>
                             @if ($user->is_active)
                                 <span class="badge badge-in">Aktif</span>
@@ -77,7 +82,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" class="table-empty">Belum ada pengguna.</td></tr>
+                    <tr><td colspan="7" class="table-empty">Belum ada pengguna.</td></tr>
                 @endforelse
                 </tbody>
             </table>

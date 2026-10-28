@@ -11,7 +11,7 @@
     <p class="k-sub">Daftar tamu yang sedang Check-In. Pilih nama Anda untuk melakukan Check-Out.</p>
 
     <form method="GET" action="{{ route('kiosk.checkout') }}" style="margin-bottom:1.2rem">
-        <div class="form-row" style="grid-template-columns:1fr auto">
+        <div class="k-search-row">
             <div class="form-group" style="margin-bottom:0">
                 <input type="text" id="q" name="q" value="{{ $search }}" class="form-control"
                        placeholder="Cari nama / perusahaan / kendaraan…">
@@ -44,6 +44,8 @@
                 </div>
             @endforeach
         </div>
+
+        {{ $visits->links() }}
     @else
         <div class="k-alert error">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>

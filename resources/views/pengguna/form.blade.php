@@ -61,12 +61,26 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="role">Role</label>
-                <select id="role" name="role" class="form-control">
-                    <option value="petugas" @selected(old('role', $user->role) === 'petugas')>Petugas</option>
-                    <option value="admin" @selected(old('role', $user->role) === 'admin')>Administrator</option>
-                </select>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="role">Role</label>
+                    <select id="role" name="role" class="form-control">
+                        <option value="petugas" @selected(old('role', $user->role) === 'petugas')>Petugas</option>
+                        <option value="manager" @selected(old('role', $user->role) === 'manager')>Manager / Atasan Departemen</option>
+                        <option value="penerima" @selected(old('role', $user->role) === 'penerima')>Penerima Tamu (operator Kiosk)</option>
+                        <option value="admin" @selected(old('role', $user->role) === 'admin')>Administrator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="department_id">Departemen</label>
+                    <select id="department_id" name="department_id" class="form-control">
+                        <option value="">Semua Departemen (akun global)</option>
+                        @foreach ($departments as $dept)
+                            <option value="{{ $dept->id }}" @selected(old('department_id', $user->department_id) == $dept->id)>{{ $dept->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="form-hint">Akun dengan departemen hanya dapat melihat data kunjungan departemennya.</p>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">

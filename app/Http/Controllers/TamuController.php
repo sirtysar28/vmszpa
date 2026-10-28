@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guest;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 
 class TamuController extends Controller
 {
-    /** Data Tamu: daftar kunjungan (check-in/check-out). */
+    /** Data Tamu: daftar kunjungan (check-in/check-out) — dibatasi 10 baris/halaman. */
     public function index(Request $request)
     {
-        $query = Visit::with('guest');
+        $query = Visit::with(['guest', 'department'])->forUser($request->user());
 
         // Pencarian
         $search = trim((string) $request->query('q', ''));
@@ -42,7 +41,7 @@ class TamuController extends Controller
             $query->whereDate('check_in_at', '<=', $request->query('sampai'));
         }
 
-        $visits = $query->latest('check_in_at')->paginate(15)->withQueryString();
+        $visits = $query->latest('check_in_at')->paginate(10)->withQueryString();
 
         return view('tamu.index', compact('visits', 'search'));
     }
@@ -53,21 +52,6 @@ class TamuController extends Controller
         $visit->load('guest');
 
         return view('tamu.show', compact('visit'));
-    }
-
-    /** Force check-out dari sisi management. */
-    public function forceCheckout(Request $request, Visit $visit)
-    {
-        if ($visit->check_out_at === null) {
-            $visit->update([
-                'check_out_at' => now(),
-                'checked_out_by' => $request->user()->id,
-            ]);
-
-            return back()->with('success', 'Tamu '.$visit->guest->name.' berhasil di-check-out.');
-        }
-
-        return back()->withErrors(['Tamu tersebut sudah check-out.']);
     }
 
     /** Hapus data kunjungan (hanya admin). */
@@ -82,7 +66,7 @@ class TamuController extends Controller
     /** Export CSV. */
     public function export(Request $request)
     {
-        $query = Visit::with('guest')->latest('check_in_at');
+        $query = Visit::with(['guest', 'department'])->forUser($request->user())->latest('check_in_at');
 
         if ($request->filled('q')) {
             $s = trim((string) $request->query('q'));
@@ -107,7 +91,7 @@ class TamuController extends Controller
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8 utk Excel
-            fputcsv($out, ['Kode Tamu', 'Nama', 'No HP', 'Perusahaan', 'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan']);
+            fputcsv($out, ['Kode Tamu', 'Nama', 'No HP', 'Perusahaan', 'Departemen', 'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan']);
 
             $query->chunk(500, function ($visits) use ($out) {
                 foreach ($visits as $v) {
@@ -116,6 +100,7 @@ class TamuController extends Controller
                         $v->guest->name,
                         $v->guest->phone,
                         $v->guest->company,
+                        $v->department?->name,
                         $v->check_in_at?->format('d M Y H:i'),
                         $v->check_out_at?->format('d M Y H:i'),
                         $v->purpose,

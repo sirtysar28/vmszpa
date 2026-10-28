@@ -2,9 +2,13 @@
     <nav class="pagination" role="navigation" aria-label="Navigasi halaman">
         {{-- Sebelumnya --}}
         @if ($paginator->onFirstPage())
-            <span class="disabled" aria-disabled="true">&lsaquo;</span>
+            <span class="disabled" aria-disabled="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </span>
         @else
-            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Halaman sebelumnya">&lsaquo;</a>
+            <a href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="Halaman sebelumnya">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
         @endif
 
         {{-- Nomor halaman --}}
@@ -25,9 +29,13 @@
 
         {{-- Berikutnya --}}
         @if ($paginator->hasMorePages())
-            <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Halaman berikutnya">&rsaquo;</a>
+            <a href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="Halaman berikutnya">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
         @else
-            <span class="disabled" aria-disabled="true">&rsaquo;</span>
+            <span class="disabled" aria-disabled="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
         @endif
     </nav>
 @endif

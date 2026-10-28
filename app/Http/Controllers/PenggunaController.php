@@ -2,23 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class PenggunaController extends Controller
 {
     /** Kelola akun petugas/admin (khusus admin). */
     public function index()
     {
-        $users = User::latest()->paginate(15);
+        $users = User::with('department')->latest()->paginate(10);
 
         return view('pengguna.index', compact('users'));
     }
 
     public function create()
     {
-        return view('pengguna.form', ['user' => new User()]);
+        return view('pengguna.form', [
+            'user' => new User,
+            'departments' => Department::orderBy('name')->get(),
+        ]);
     }
 
     public function store(Request $request)
@@ -27,9 +32,10 @@ class PenggunaController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'max:255', 'confirmed',
-                Rule::password()->letters()->numbers(),
+                Password::min(8)->letters()->numbers(),
             ],
-            'role' => ['required', Rule::in(['admin', 'petugas'])],
+            'role' => ['required', Rule::in(['admin', 'manager', 'petugas', 'penerima'])],
+            'department_id' => ['nullable', 'integer', 'exists:departments,id'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -47,7 +53,10 @@ class PenggunaController extends Controller
 
     public function edit(User $user)
     {
-        return view('pengguna.form', compact('user'));
+        return view('pengguna.form', [
+            'user' => $user,
+            'departments' => Department::orderBy('name')->get(),
+        ]);
     }
 
     public function update(Request $request, User $user)
@@ -56,9 +65,10 @@ class PenggunaController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'max:255', 'confirmed',
-                Rule::password()->letters()->numbers(),
+                Password::min(8)->letters()->numbers(),
             ],
-            'role' => ['required', Rule::in(['admin', 'petugas'])],
+            'role' => ['required', Rule::in(['admin', 'manager', 'petugas', 'penerima'])],
+            'department_id' => ['nullable', 'integer', 'exists:departments,id'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',

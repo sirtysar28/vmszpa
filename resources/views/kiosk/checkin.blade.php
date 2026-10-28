@@ -40,6 +40,17 @@
             </div>
         </div>
 
+        <div class="form-group">
+            <label class="form-label" for="department_id">Departemen yang Dituju <span class="req">*</span></label>
+            <select id="department_id" name="department_id" class="form-control @error('department_id') is-invalid @enderror" required>
+                <option value="">— Pilih Departemen —</option>
+                @foreach ($departments as $dept)
+                    <option value="{{ $dept->id }}" @selected(old('department_id') == $dept->id)>{{ $dept->name }}</option>
+                @endforeach
+            </select>
+            @error('department_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
+        </div>
+
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label" for="vehicle_number">Nomor Kendaraan <span class="req">*</span></label>

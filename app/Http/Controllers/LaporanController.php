@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guest;
 use App\Models\Visit;
 use Illuminate\Http\Request;
 
@@ -13,7 +12,8 @@ class LaporanController extends Controller
         $dari = $request->query('dari', now()->startOfMonth()->format('Y-m-d'));
         $sampai = $request->query('sampai', now()->format('Y-m-d'));
 
-        $base = Visit::query()
+        // Scope: akun departemen hanya melihat kunjungan departemennya
+        $base = Visit::forUser($request->user())
             ->whereDate('check_in_at', '>=', $dari)
             ->whereDate('check_in_at', '<=', $sampai);
 
@@ -30,7 +30,7 @@ class LaporanController extends Controller
             ->get();
 
         // Rekap perusahaan
-        $rekapPerusahaan = Visit::query()
+        $rekapPerusahaan = Visit::forUser($request->user())
             ->join('guests', 'guests.id', '=', 'visits.guest_id')
             ->whereDate('check_in_at', '>=', $dari)
             ->whereDate('check_in_at', '<=', $sampai)
@@ -42,14 +42,14 @@ class LaporanController extends Controller
 
         // Rekap harian
         $rekapHarian = (clone $base)
-            ->selectRaw("DATE(check_in_at) AS tanggal, COUNT(*) AS jumlah,
-                SUM(CASE WHEN check_out_at IS NULL THEN 1 ELSE 0 END) AS masih_didalam")
+            ->selectRaw('DATE(check_in_at) AS tanggal, COUNT(*) AS jumlah,
+                SUM(CASE WHEN check_out_at IS NULL THEN 1 ELSE 0 END) AS masih_didalam')
             ->groupBy('tanggal')
             ->orderBy('tanggal')
             ->get();
 
         // Detail kunjungan
-        $kunjungan = (clone $base)->with('guest')->latest('check_in_at')->paginate(20)->withQueryString();
+        $kunjungan = (clone $base)->with(['guest', 'department'])->latest('check_in_at')->paginate(10)->withQueryString();
 
         return view('laporan.index', compact(
             'dari', 'sampai', 'totalKunjungan', 'totalTamuUnik',
@@ -63,7 +63,7 @@ class LaporanController extends Controller
         $dari = $request->query('dari', now()->startOfMonth()->format('Y-m-d'));
         $sampai = $request->query('sampai', now()->format('Y-m-d'));
 
-        $visits = Visit::with('guest')
+        $visits = Visit::with(['guest', 'department'])->forUser($request->user())
             ->whereDate('check_in_at', '>=', $dari)
             ->whereDate('check_in_at', '<=', $sampai)
             ->orderBy('check_in_at')
@@ -74,7 +74,7 @@ class LaporanController extends Controller
         return response()->streamDownload(function () use ($visits) {
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($out, ['Kode Tamu', 'Nama', 'No HP', 'Perusahaan', 'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan']);
+            fputcsv($out, ['Kode Tamu', 'Nama', 'No HP', 'Perusahaan', 'Departemen', 'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan']);
 
             foreach ($visits as $v) {
                 fputcsv($out, [
@@ -82,6 +82,7 @@ class LaporanController extends Controller
                     $v->guest->name,
                     $v->guest->phone,
                     $v->guest->company,
+                    $v->department?->name,
                     $v->check_in_at?->format('d M Y H:i'),
                     $v->check_out_at?->format('d M Y H:i'),
                     $v->purpose,

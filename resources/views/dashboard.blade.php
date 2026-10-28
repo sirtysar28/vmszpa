@@ -60,15 +60,22 @@
                 <span class="li-in"><i></i>Check-in</span>
                 <span class="li-out"><i></i>Check-out</span>
             </div>
+            @php
+                $maxVal = max(1, max(array_column($chart, 'checkin')), max(array_column($chart, 'checkout')));
+            @endphp
             <div class="chart">
                 @foreach ($chart as $row)
-                    @php $maxVal = max(1, max(array_column($chart, 'checkin')), max(array_column($chart, 'checkout'))); @endphp
-                    <div class="bar-col">
-                        <div class="bars">
-                            <div class="bar in" title="Check-in: {{ $row['checkin'] }}" style="height: {{ round($row['checkin'] / $maxVal * 100) }}%"></div>
-                            <div class="bar out" title="Check-out: {{ $row['checkout'] }}" style="height: {{ round($row['checkout'] / $maxVal * 100) }}%"></div>
+                    @php [$dayName, $date] = explode(' ', $row['label'], 2); @endphp
+                    <div class="bar-col {{ $row['today'] ?? '' }}">
+                        <div class="vals">
+                            <span class="v-in">{{ $row['checkin'] }}</span>
+                            <span class="v-out">{{ $row['checkout'] }}</span>
                         </div>
-                        <small>{{ $row['label'] }}</small>
+                        <div class="bars">
+                            <div class="bar in" title="Check-in {{ $row['label'] }}: {{ $row['checkin'] }}" style="height: {{ max(2, round($row['checkin'] / $maxVal * 100)) }}%"></div>
+                            <div class="bar out" title="Check-out {{ $row['label'] }}: {{ $row['checkout'] }}" style="height: {{ max(2, round($row['checkout'] / $maxVal * 100)) }}%"></div>
+                        </div>
+                        <small><span>{{ $dayName }}</span><span>{{ $date }}</span></small>
                     </div>
                 @endforeach
             </div>
@@ -82,6 +89,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 Tamu yang Sedang Di Dalam ({{ $sedangDidalam->count() }})
             </div>
+            <div class="user-list">
             @forelse ($sedangDidalam as $visit)
                 <div class="user-row">
                     <div class="avatar">{{ strtoupper(mb_substr($visit->guest->name, 0, 1)) }}</div>
@@ -97,6 +105,7 @@
             @empty
                 <p class="text-mute mt-1">Belum ada tamu yang sedang berada di dalam area.</p>
             @endforelse
+            </div>
         </div>
     </div>
 </div>

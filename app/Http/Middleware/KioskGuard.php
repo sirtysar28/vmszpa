@@ -7,9 +7,11 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware tamu-kiosk: hanya boleh mengakses fitur check-in/check-out.
- * Tidak perlu login (untuk tablet di pos security), tapi dibatasi
- * method + rate-limit + tanpa akses resource internal.
+ * Middleware KIOSK — layar tablet untuk tamu di pos penerima tamu.
+ *
+ * Tamu TIDAK login. Yang login adalah akun "Penerima Tamu" khusus
+ * (role: penerima) yang mengoperasikan tablet; admin juga diizinkan.
+ * Route kiosk dilindungi middleware auth, middleware ini membatasi role.
  */
 class KioskGuard
 {
@@ -18,6 +20,11 @@ class KioskGuard
         // Tolak upload file apapun di area kiosk (mitigasi webshell upload)
         if ($request->files->count() > 0) {
             abort(400, 'Upload tidak diizinkan.');
+        }
+
+        // Hanya akun Penerima Tamu / Administrator yang boleh mengoperasikan kiosk
+        if (! $request->user()?->canOperateKiosk()) {
+            abort(403, 'Kiosk hanya untuk akun Penerima Tamu / Administrator.');
         }
 
         // Header tambahan: kiosk jangan pernah di-cache

@@ -6,6 +6,16 @@
     <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'Kiosk Tamu') | {{ config('app.name') }}</title>
     <link rel="icon" href="{{ asset('images/logo-kecil.png') }}">
+
+    {{-- PWA: installable di mobile seperti aplikasi native --}}
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <meta name="theme-color" content="#0b5cab">
+    <link rel="apple-touch-icon" href="{{ asset('images/icons/apple-touch-icon.png') }}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VMS ZPA">
+
     <link rel="stylesheet" href="{{ asset('css/kiosk.css') }}?v={{ filemtime(public_path('css/kiosk.css')) }}">
     <script src="{{ asset('js/app.js') }}" defer></script>
     <script src="{{ asset('js/kiosk.js') }}?v={{ filemtime(public_path('js/kiosk.js')) }}" defer></script>
@@ -22,6 +32,18 @@
         <div class="k-clock">
             <b id="kiosk-clock">--:--:--</b>
             <small id="kiosk-date">&nbsp;</small>
+        </div>
+
+        {{-- Operator kiosk (akun Penerima Tamu) + keluar --}}
+        <div class="k-user">
+            <small>{{ auth()->user()->name }}</small>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" title="Keluar dari kiosk">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+                    Keluar
+                </button>
+            </form>
         </div>
     </div>
 </header>

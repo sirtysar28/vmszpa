@@ -17,7 +17,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; }
+html { min-height: 100%; } /* jangan paksa height:100% — bikin header keshrink saat konten mobile lebih tinggi dari viewport */
 body {
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
   color: var(--k-ink); font-size: 16px; line-height: 1.5;
@@ -33,7 +33,11 @@ body {
 /* ============ HEADER KIOSK ============ */
 .k-header {
   background: linear-gradient(140deg, var(--k-brand-deep) 0%, var(--k-brand) 60%, #0a6dc2 100%);
-  color: #fff; padding: 1.3rem 1.6rem; position: relative; overflow: hidden;
+  color: #fff; padding: 1.3rem 1.6rem;
+  padding-left: max(1.6rem, env(safe-area-inset-left));
+  position: relative; overflow: hidden;
+  flex: none;            /* JANGAN di-shrink flexbox — header harus selalu utuh */
+  z-index: 10;           /* selalu di atas konten di bawahnya */
 }
 .k-header::before {
   content: ""; position: absolute; inset: 0; opacity: .12; pointer-events: none;
@@ -55,8 +59,28 @@ body {
 .k-clock b { font-size: clamp(1.5rem, 3.5vw, 2.1rem); font-weight: 800; display: block; line-height: 1.1; }
 .k-clock small { color: #bfe0f8; font-size: .85rem; }
 
+/* Operator kiosk (akun Penerima Tamu) — chip + tombol keluar */
+.k-user {
+  display: flex; flex-direction: column; align-items: flex-end; gap: .3rem;
+  flex: none; text-align: right;
+}
+.k-user > small {
+  color: #cfe6fb; font-size: .74rem; font-weight: 600;
+  max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.k-user form { display: flex; }
+.k-user button {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .28);
+  color: #fff; font: 700 .72rem "Inter", "Segoe UI", system-ui, sans-serif;
+  padding: .38rem .75rem; border-radius: 999px; cursor: pointer;
+  transition: background .15s;
+}
+.k-user button:hover { background: rgba(255, 255, 255, .26); }
+.k-user button svg { width: 14px; height: 14px; }
+
 /* ============ KONTEN ============ */
-.k-main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 1.6rem 1.6rem 2rem; }
+.k-main { flex: 1 0 auto; width: 100%; max-width: 1100px; margin: 0 auto; padding: 1.6rem 1.6rem 2rem; }
 
 /* Kartu counter check-in / check-out */
 .k-counters { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
@@ -146,6 +170,22 @@ textarea.form-control { min-height: 110px; resize: vertical; }
 
 /* Daftar hasil pencarian / list checkout */
 .k-list { display: grid; gap: .8rem; margin-top: .3rem; }
+
+/* Baris pencarian kiosk (input + tombol, ikut menyempit di mobile) */
+.k-search-row { display: grid; grid-template-columns: 1fr auto; gap: .7rem; align-items: center; }
+@media (max-width: 600px) { .k-search-row { grid-template-columns: 1fr; } }
+
+/* Pagination kiosk (checkout list — 10 baris/halaman) */
+.pagination { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; margin-top: 1.2rem; }
+.pagination a, .pagination span {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 46px; height: 46px; padding: .4rem .8rem; border-radius: 12px;
+  border: 1.5px solid var(--k-line); font-size: .95rem; font-weight: 700;
+  color: var(--k-ink); background: #fff;
+}
+.pagination svg { width: 16px; height: 16px; }
+.pagination .active span, .pagination a:hover { background: var(--k-brand); border-color: var(--k-brand); color: #fff; text-decoration: none; }
+.pagination .disabled span { opacity: .4; }
 .k-item {
   display: flex; align-items: center; gap: 1rem; width: 100%;
   background: #f8fafc; border: 2px solid var(--k-line); border-radius: 16px;
@@ -200,6 +240,7 @@ textarea.form-control { min-height: 110px; resize: vertical; }
 
 /* Footer kiosk */
 .k-footer {
+  flex: none;
   text-align: center; padding: 1.1rem 1rem calc(1.1rem + env(safe-area-inset-bottom));
   font-size: .82rem; color: var(--k-mute);
 }
@@ -224,9 +265,10 @@ textarea.form-control { min-height: 110px; resize: vertical; }
   .k-header { padding: .9rem 1rem; }
   .k-header-inner { flex-wrap: wrap; gap: .6rem .8rem; }
   .k-header img { height: 38px; padding: 5px 8px; border-radius: 10px; }
-  .k-clock { margin-left: auto; max-width: 58%; }
+  .k-clock { margin-left: 0; max-width: 50%; }
   .k-clock b { font-size: 1.25rem; }
   .k-clock small { font-size: .75rem; white-space: normal; line-height: 1.25; }
+  .k-user { order: 2; margin-left: auto; }
   .k-welcome { flex: 1 1 100%; order: 3; }
   .k-welcome small { font-size: .7rem; letter-spacing: .18em; }
   .k-welcome h1 { font-size: 1.2rem; }

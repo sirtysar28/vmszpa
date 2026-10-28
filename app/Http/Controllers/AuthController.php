@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guest;
-use App\Models\Visit;
+use App\Models\LoginAttempt;
+use App\Models\User;
+use App\Notifications\ResetPasswordNotification;
 use App\Support\Captcha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +19,9 @@ class AuthController extends Controller
     public function showLogin(Request $request)
     {
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return redirect()->intended(
+                Auth::user()->isPenerima() ? route('kiosk.index') : route('dashboard')
+            );
         }
 
         Captcha::generate();
@@ -59,7 +63,7 @@ class AuthController extends Controller
         // Verifikasi captcha dulu (sekali pakai)
         if (! Captcha::verify($data['captcha'])) {
             RateLimiter::hit($throttleKey, 120);
-            \App\Models\LoginAttempt::log(false, $data['email'], $request->userAgent());
+            LoginAttempt::log(false, $data['email'], $request->userAgent());
 
             return back()->withErrors(['captcha' => 'Kode captcha salah.'])->withInput($request->only('email'));
         }
@@ -79,14 +83,19 @@ class AuthController extends Controller
                     ->withInput($request->only('email'));
             }
 
-            \App\Models\LoginAttempt::log(true, $data['email'], $request->userAgent());
+            LoginAttempt::log(true, $data['email'], $request->userAgent());
             $request->session()->regenerate();
+
+            // Akun Penerima Tamu langsung dibawa ke layar Kiosk
+            if ($user->isPenerima()) {
+                return redirect()->intended(route('kiosk.index'));
+            }
 
             return redirect()->intended(route('dashboard'));
         }
 
         RateLimiter::hit($throttleKey, 120);
-        \App\Models\LoginAttempt::log(false, $data['email'], $request->userAgent());
+        LoginAttempt::log(false, $data['email'], $request->userAgent());
         Captcha::generate();
 
         return back()->withErrors(['email' => 'Email atau password salah.'])->withInput($request->only('email'));
@@ -123,16 +132,16 @@ class AuthController extends Controller
         }
         RateLimiter::hit($throttleKey, 300);
 
-        $user = \App\Models\User::where('email', $request->input('email'))->first();
+        $user = User::where('email', $request->input('email'))->first();
 
         // Selalu tampilkan pesan generik (jangan bocorkan keberadaan akun)
         $status = 'Tautan reset password telah dikirim ke email Anda jika akun tersebut terdaftar.';
 
         if ($user) {
-            $token = \Illuminate\Support\Facades\Password::createToken($user);
+            $token = Password::createToken($user);
             $resetUrl = route('password.reset', ['token' => $token, 'email' => $user->email]);
 
-            $user->notify(new \App\Notifications\ResetPasswordNotification($resetUrl));
+            $user->notify(new ResetPasswordNotification($resetUrl));
 
             // Karena email di lingkungan lokal/dev masih mailer=log,
             // tampilkan tautan langsung HANYA di environment lokal.
@@ -166,14 +175,14 @@ class AuthController extends Controller
             'password' => 'Password harus mengandung huruf dan angka.',
         ]);
 
-        $status = \Illuminate\Support\Facades\Password::reset(
+        $status = Password::reset(
             $data,
-            function (\App\Models\User $user, string $password) {
+            function (User $user, string $password) {
                 $user->forceFill(['password' => $password])->save();
             },
         );
 
-        if ($status === \Illuminate\Support\Facades\Password::PASSWORD_RESET) {
+        if ($status === Password::PASSWORD_RESET) {
             return redirect()->route('login')->with('status', 'Password berhasil diubah. Silakan login dengan password baru.');
         }
 

@@ -136,7 +136,7 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Kode</th><th>Tamu</th><th>Perusahaan</th>
+                        <th>Kode</th><th>Tamu</th><th>Perusahaan</th><th>Departemen</th>
                         <th>Check-In</th><th>Check-Out</th><th>Tujuan</th><th>Kendaraan</th>
                     </tr>
                 </thead>
@@ -146,13 +146,14 @@
                         <td><span class="badge badge-code">{{ $visit->guest->guest_code }}</span></td>
                         <td class="cell-main">{{ $visit->guest->name }}</td>
                         <td>{{ $visit->guest->company ?: '—' }}</td>
+                        <td>{{ $visit->department?->name ?: '—' }}</td>
                         <td>{{ $visit->check_in_at->translatedFormat('d M H:i') }}</td>
                         <td>{{ $visit->check_out_at?->translatedFormat('d M H:i') ?? '—' }}</td>
                         <td>{{ $visit->purpose }}</td>
                         <td>{{ $visit->vehicle_number }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="table-empty">Tidak ada kunjungan pada periode ini.</td></tr>
+                    <tr><td colspan="8" class="table-empty">Tidak ada kunjungan pada periode ini.</td></tr>
                 @endforelse
                 </tbody>
             </table>

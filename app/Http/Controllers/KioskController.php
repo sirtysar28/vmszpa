@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Department;
 use App\Models\Guest;
 use App\Models\Visit;
+use App\Support\SendVisitNotification;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 
 /**
- * Controller KIOSK — layar tablet untuk tamu di pos security.
- * Tanpa login (mode tamu), dibatasi rate-limit & tanpa upload file.
+ * Controller KIOSK — layar tablet di pos penerima tamu.
+ * Dioperasikan akun khusus "Penerima Tamu" (login wajib),
+ * dibatasi rate-limit & tanpa upload file.
  */
 class KioskController extends Controller
 {
@@ -82,7 +84,7 @@ class KioskController extends Controller
                 ->where('name', 'like', '%'.trim((string) $request->query('name')).'%')
                 ->where('phone', 'like', '%'.trim((string) $request->query('phone')).'%')
                 ->withCount(['visits' => fn ($q) => $q->whereNotNull('check_out_at')])
-                ->limit(20)
+                ->limit(10)
                 ->orderBy('name')
                 ->get();
         }
@@ -100,7 +102,10 @@ class KioskController extends Controller
                 ->with('kiosk_error', 'Anda sedang tercatat Check-In. Silakan Check-Out terlebih dahulu.');
         }
 
-        return view('kiosk.checkin', compact('guest'));
+        return view('kiosk.checkin', [
+            'guest' => $guest,
+            'departments' => Department::orderBy('name')->get(),
+        ]);
     }
 
     public function checkinStore(Request $request, Guest $guest)
@@ -111,20 +116,26 @@ class KioskController extends Controller
 
         $data = $request->validate([
             'purpose' => ['required', 'string', 'max:255', 'min:3'],
+            'department_id' => ['required', 'integer', 'exists:departments,id'],
             'vehicle_number' => ['required', 'string', 'max:30', 'min:3'],
             'meet_with' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
             'purpose.required' => 'Tujuan wajib diisi.',
+            'department_id.required' => 'Departemen yang dituju wajib dipilih.',
+            'department_id.exists' => 'Departemen tidak valid.',
             'vehicle_number.required' => 'Nomor kendaraan wajib diisi.',
             'vehicle_number.min' => 'Nomor kendaraan minimal 3 karakter.',
         ]);
 
-        Visit::create($data + [
+        $visit = Visit::create($data + [
             'guest_id' => $guest->id,
             'check_in_at' => now(),
-            'checked_in_by' => null, // self-service oleh tamu
+            'checked_in_by' => $request->user()->id, // operator penerima tamu
         ]);
+
+        // Notifikasi email ke penerima terdaftar (gagal kirim tidak mengganggu kiosk)
+        SendVisitNotification::send($visit, 'checkin');
 
         return redirect()
             ->route('kiosk.index')
@@ -147,8 +158,8 @@ class KioskController extends Controller
                 });
             })
             ->orderBy('check_in_at')
-            ->limit(50)
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return view('kiosk.checkout', compact('visits', 'search'));
     }
@@ -159,7 +170,13 @@ class KioskController extends Controller
             return redirect()->route('kiosk.index')->with('kiosk_error', 'Tamu tersebut sudah Check-Out.');
         }
 
-        $visit->update(['check_out_at' => now()]);
+        $visit->update([
+            'check_out_at' => now(),
+            'checked_out_by' => $request->user()->id,
+        ]);
+
+        // Notifikasi email ke penerima terdaftar (gagal kirim tidak mengganggu kiosk)
+        SendVisitNotification::send($visit, 'checkout');
 
         return redirect()
             ->route('kiosk.index')

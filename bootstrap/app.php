@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureManagement;
+use App\Http\Middleware\KioskGuard;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,16 +18,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Alias middleware
         $middleware->alias([
-            'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
-            'kiosk.guard' => \App\Http\Middleware\KioskGuard::class,
-            'role.admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'security.headers' => SecurityHeaders::class,
+            'kiosk.guard' => KioskGuard::class,
+            'role.admin' => EnsureAdmin::class,
+            'role.management' => EnsureManagement::class,
         ]);
 
         // Trust hanya proxy yang terdaftar (keamanan IP spoofing)
         $middleware->trustProxies(at: '*');
 
         // Global security headers
-        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+        $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

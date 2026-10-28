@@ -16,17 +16,28 @@ Dikembangkan oleh [Trijaya Solution](https://trijayasolution.com).
 | **Layar Daftar Tamu** | Pilihan **"Sudah pernah Daftar"** atau **"Daftar Sekarang"** |
 | **Registrasi Tamu** | Nama lengkap, No HP, Jenis Kendaraan (Motor/Mobil/Truck), Dari Perusahaan, Jenis Identitas (KTP/SIM/Passport/Lainnya), No Identitas → mendapat **Kode Tamu** (mis. `ZPA-8F3K2A`) |
 | **Sudah Pernah Daftar** | Cari berdasarkan Nama + No HP, tampil daftar tamu terdaftar |
-| **Check-In** | Tujuan\*, Nomor Kendaraan\*, Bertemu dengan siapa, Catatan → CHECK-IN |
-| **Check-Out** | Daftar tamu yang sedang Check-In (nama / perusahaan / tujuan) → pilih → CHECK-OUT |
+| **Check-In** | Tujuan\*, Departemen\*, Nomor Kendaraan\*, Bertemu dengan siapa, Catatan → CHECK-IN + **notifikasi email otomatis** |
+| **Check-Out** | Daftar tamu yang sedang Check-In (nama / perusahaan / tujuan, 10/halaman) → pilih → CHECK-OUT + **notifikasi email otomatis** |
 
-### 🖥️ Area Management (login, responsif mobile — menu berbentuk **icon di footer**)
+> Tamu **tidak punya login**. Tablet kiosk di-login-kan dengan akun khusus role `penerima`
+> (`penerima@vmszpa.com / Penerima@2026` — ganti passwordnya di menu Profil).
+> Check-in & check-out **hanya** dari kiosk; dashboard admin murni monitoring.
+
+### 🖥️ Area Management (login, responsif mobile — menu berbentuk **icon dock floating di bawah + header floating**)
 - **Login**: form di **kiri**, informasi aplikasi di **kanan**; ada fitur **intip password**,
   **captcha 5 karakter** (bisa diklik untuk refresh), **lupa password** via email.
 - **Dashboard**: statistik, tamu yang sedang di dalam, grafik 7 hari, kunjungan terbaru.
-- **Data Tamu**: tabel lengkap (Kode Tamu, Tamu, No HP, Perusahaan, Tgl & Jam Check-In/Out,
-  Tujuan, No Kendaraan, Bertemu, Catatan), pencarian + filter tanggal + status, export CSV, cetak.
-- **Laporan**: rekap periode (tujuan terbanyak, perusahaan, harian) + export CSV + cetak.
-- **Pengguna** (khusus admin): kelola akun petugas/admin (tambah, edit, aktif/nonaktif, hapus).
+- **Data Tamu** (riwayat kunjungan, 10 baris/halaman): tabel lengkap (Kode Tamu, Tamu, No HP,
+  Perusahaan, Tgl & Jam Check-In/Out, Tujuan, No Kendaraan, Bertemu, Catatan), pencarian +
+  filter tanggal + status, export CSV, cetak.
+- **Master Tamu** (10 baris/halaman): data induk tamu — tambah/edit, hapus (khusus admin),
+  total kunjungan, kunjungan terakhir, status di dalam/di luar, tautan riwayat.
+- **Laporan** (10 baris/halaman): rekap periode (tujuan terbanyak, perusahaan, harian) + export CSV + cetak.
+- **Pengguna** (khusus admin, 10 baris/halaman): kelola akun — role `admin` / `manager` /
+  `penerima` (operator kiosk) / `petugas` (tambah, edit, aktif/nonaktif, hapus).
+- **Pengaturan SMTP** (khusus admin): host/port/enkripsi/username/password SMTP (password
+  terenkripsi di database), alamat & nama pengirim, daftar penerima notifikasi, tombol
+  **uji kirim email**. Notifikasi check-in/check-out dikirim dengan **template HTML rapi**.
 - Footer setiap halaman: *Developed by [Trijaya Solution](https://trijayasolution.com)*.
 
 ---
@@ -43,7 +54,7 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-
+git 
 
 ---
 
@@ -118,9 +129,10 @@ Selain itu:
 
 | Tabel | Isi |
 |---|---|
-| `users` | Akun management (role: `admin` / `petugas`, status aktif) |
+| `users` | Akun (role: `admin` / `manager` / `penerima` operator kiosk / `petugas`, status aktif) |
 | `guests` | Master tamu: kode tamu unik, nama, HP, perusahaan, kendaraan, identitas |
-| `visits` | Kunjungan: tujuan, no kendaraan, bertemu, catatan, check-in/out at, petugas |
+| `visits` | Kunjungan: tujuan, no kendaraan, bertemu, catatan, check-in/out at, operator |
+| `settings` | Pengaturan SMTP & penerima notifikasi email (password terenkripsi) |
 | `login_attempts` | Audit trail login (IP, user-agent, sukses/gagal) |
 
 ---
@@ -147,7 +159,8 @@ Layar Check-in (welcome + counter)
 php artisan test
 ```
 
-19 test (login & captcha, alur kiosk lengkap, management, security headers) — semua lulus.
+47 test (login & captcha, alur kiosk lengkap, master tamu, pengaturan SMTP, notifikasi email,
+render semua halaman, management, security headers) — semua lulus.
 
 ---
 
