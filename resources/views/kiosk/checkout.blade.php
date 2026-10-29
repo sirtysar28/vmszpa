@@ -23,12 +23,13 @@
     @if ($visits->count())
         <div class="k-list">
             @foreach ($visits as $visit)
-                <div class="k-item">
-                    <form method="POST" action="{{ route('kiosk.checkout.store', $visit) }}"
-                          data-confirm="Konfirmasi CHECK-OUT untuk {{ addslashes($visit->guest->name) }}?">
-                        @csrf
-                        <div class="avatar-k">{{ strtoupper(mb_substr($visit->guest->name, 0, 1)) }}</div>
-                        <div class="info">
+                <form method="POST" action="{{ route('kiosk.checkout.store', $visit) }}"
+                      data-confirm="Konfirmasi CHECK-OUT untuk {{ addslashes($visit->guest->name) }}?">
+                    @csrf
+                    {{-- Seluruh baris adalah tombol submit agar bisa diklik dari mana saja --}}
+                    <button type="submit" class="k-item" aria-label="Check-out {{ $visit->guest->name }}">
+                        <span class="avatar-k">{{ strtoupper(mb_substr($visit->guest->name, 0, 1)) }}</span>
+                        <span class="info">
                             <b>{{ $visit->guest->name }}</b>
                             <small>
                                 {{ $visit->guest->company ?: 'Tanpa perusahaan' }}
@@ -36,12 +37,12 @@
                                 &middot; {{ $visit->vehicle_number }}
                             </small>
                             <small>Check-in: {{ $visit->check_in_at->translatedFormat('d M Y H:i') }}</small>
-                        </div>
-                        <span class="go">
+                        </span>
+                        <span class="go" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
                         </span>
-                    </form>
-                </div>
+                    </button>
+                </form>
             @endforeach
         </div>
 

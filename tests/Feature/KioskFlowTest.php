@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\Department;
 use App\Models\Guest;
 use App\Models\User;
 use App\Models\Visit;
@@ -75,13 +74,11 @@ class KioskFlowTest extends TestCase
         $this->assertMatchesRegularExpression('/^ZPA-[A-Z0-9]{6}$/', $guest->guest_code);
         $response->assertRedirect(route('kiosk.checkin.form', $guest, absolute: false));
 
-        // 3. Form check-in kunjungan
-        $dept = Department::create(['name' => 'Umum Test', 'code' => 'UMT']);
+        // 3. Form check-in kunjungan (input departemen disembunyikan, tidak dikirim)
         $this->actingAs($this->penerima)->get("/kiosk/checkin/{$guest->id}")->assertOk()->assertSee('Tujuan');
 
         $response = $this->actingAs($this->penerima)->post("/kiosk/checkin/{$guest->id}", [
             'purpose' => 'Meeting',
-            'department_id' => $dept->id,
             'vehicle_number' => 'B 1234 AND',
             'meet_with' => 'Mr. X',
             'notes' => 'Diskusi kerjasama',
@@ -90,11 +87,17 @@ class KioskFlowTest extends TestCase
 
         $visit = Visit::where('guest_id', $guest->id)->first();
         $this->assertNotNull($visit);
+        $this->assertNull($visit->department_id, 'Departemen opsional saat check-in');
         $this->assertNull($visit->check_out_at, 'Tamu masih di dalam');
         $this->assertSame($this->penerima->id, $visit->checked_in_by, 'Tercatat operator penerima tamu');
 
-        // 4. Tamu tercatat di layar check-out
-        $this->actingAs($this->penerima)->get('/kiosk/checkout')->assertOk()->assertSee('Andi Saputra');
+        // 4. Tamu tercatat di layar check-out & barisnya tombol submit yang bisa diklik
+        //    (regresi: dulu baris tidak punya tombol submit sehingga klik tidak melakukan apa-apa)
+        $this->actingAs($this->penerima)
+            ->get('/kiosk/checkout')
+            ->assertOk()
+            ->assertSee('Andi Saputra')
+            ->assertSee('<button type="submit" class="k-item"', false);
 
         // 5. Check-out
         $response = $this->actingAs($this->penerima)->post("/kiosk/checkout/{$visit->id}");

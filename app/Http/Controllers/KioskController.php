@@ -116,13 +116,12 @@ class KioskController extends Controller
 
         $data = $request->validate([
             'purpose' => ['required', 'string', 'max:255', 'min:3'],
-            'department_id' => ['required', 'integer', 'exists:departments,id'],
+            'department_id' => ['nullable', 'integer', 'exists:departments,id'],
             'vehicle_number' => ['required', 'string', 'max:30', 'min:3'],
             'meet_with' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
             'purpose.required' => 'Tujuan wajib diisi.',
-            'department_id.required' => 'Departemen yang dituju wajib dipilih.',
             'department_id.exists' => 'Departemen tidak valid.',
             'vehicle_number.required' => 'Nomor kendaraan wajib diisi.',
             'vehicle_number.min' => 'Nomor kendaraan minimal 3 karakter.',

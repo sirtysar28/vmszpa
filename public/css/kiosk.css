@@ -188,6 +188,7 @@ textarea.form-control { min-height: 110px; resize: vertical; }
 .pagination .disabled span { opacity: .4; }
 .k-item {
   display: flex; align-items: center; gap: 1rem; width: 100%;
+  appearance: none; -webkit-appearance: none; /* reset style default <button> di tablet */
   background: #f8fafc; border: 2px solid var(--k-line); border-radius: 16px;
   padding: 1rem 1.2rem; text-align: left; cursor: pointer; transition: all .15s;
   font: inherit; color: inherit;
@@ -204,7 +205,6 @@ textarea.form-control { min-height: 110px; resize: vertical; }
 .k-item .info small { color: var(--k-mute); display: block; }
 .k-item .go { flex: none; color: var(--k-mute); }
 .k-item .go svg { width: 26px; height: 26px; }
-.k-item form { display: flex; flex: 1; align-items: center; gap: 1rem; background: none; border: none; padding: 0; margin: 0; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
 
 /* Badge kode tamu */
 .badge-code {

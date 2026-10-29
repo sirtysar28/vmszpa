@@ -40,6 +40,7 @@
             </div>
         </div>
 
+        {{-- Sementara disembunyikan: departemen belum dibutuhkan saat check-in.
         <div class="form-group">
             <label class="form-label" for="department_id">Departemen yang Dituju <span class="req">*</span></label>
             <select id="department_id" name="department_id" class="form-control @error('department_id') is-invalid @enderror" required>
@@ -50,6 +51,7 @@
             </select>
             @error('department_id')<span class="invalid-feedback">{{ $message }}</span>@enderror
         </div>
+        --}}
 
         <div class="form-row">
             <div class="form-group">
