@@ -41,17 +41,15 @@
 <div class="card">
     <div class="card-body">
         <div class="table-wrap">
-            <table class="table" style="min-width:820px">
+            <table class="table" style="min-width:0">
                 <thead>
                     <tr>
-                        <th>Kode Tamu</th>
                         <th>Nama</th>
                         <th>No HP</th>
                         <th>Perusahaan</th>
                         <th>Identitas</th>
                         <th>Kendaraan</th>
-                        <th>Total Kunjungan</th>
-                        <th>Terakhir Kunjungan</th>
+                        <th style="text-align:center">Total Kunjungan<br>Terakhir Kunjungan</th>
                         <th>Status</th>
                         <th class="no-print">Aksi</th>
                     </tr>
@@ -59,7 +57,6 @@
                 <tbody>
                 @forelse ($guests as $guest)
                     <tr>
-                        <td><span class="badge badge-code">{{ $guest->guest_code }}</span></td>
                         <td>
                             <div class="flex items-center gap-2">
                                 <div class="avatar" style="width:34px;height:34px;font-size:.85rem;border-radius:9px">{{ strtoupper(mb_substr($guest->name, 0, 1)) }}</div>
@@ -73,8 +70,10 @@
                             <div class="cell-sub">{{ $guest->identity_number }}</div>
                         </td>
                         <td>{{ $guest->vehicle_type ?: '—' }}</td>
-                        <td>{{ $guest->visits_count }}x</td>
-                        <td>{{ $guest->last_visit_at ? \Carbon\Carbon::parse($guest->last_visit_at)->translatedFormat('d M Y') : '—' }}</td>
+                        <td style="text-align:center">
+                            <div class="cell-main">{{ $guest->visits_count }}x</div>
+                            <div class="cell-sub">{{ $guest->last_visit_at ? \Carbon\Carbon::parse($guest->last_visit_at)->translatedFormat('d M Y') : '—' }}</div>
+                        </td>
                         <td>
                             @if ($guest->active_visits_count > 0)
                                 <span class="badge badge-in">Di Dalam</span>
@@ -106,7 +105,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="10" class="table-empty">
+                        <td colspan="8" class="table-empty">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M8 11h6"/></svg>
                             Belum ada master data tamu yang cocok.
                         </td>

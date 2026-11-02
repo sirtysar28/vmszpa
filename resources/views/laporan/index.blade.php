@@ -20,7 +20,7 @@
     </div>
 </div>
 
-{{-- Filter periode --}}
+{{-- Filter periode + tujuan --}}
 <form method="GET" action="{{ route('laporan.index') }}" class="filter-bar no-print">
     <div class="fg">
         <label class="form-label" for="dari">Dari Tanggal</label>
@@ -29,6 +29,15 @@
     <div class="fg">
         <label class="form-label" for="sampai">Sampai Tanggal</label>
         <input type="date" id="sampai" name="sampai" value="{{ $sampai }}" class="form-control" required>
+    </div>
+    <div class="fg">
+        <label class="form-label" for="tujuan">Tujuan Kunjungan</label>
+        <select id="tujuan" name="tujuan" class="form-control">
+            <option value="">Semua Tujuan</option>
+            @foreach ($tujuanList as $p)
+                <option value="{{ $p }}" @selected($p === $tujuan)>{{ $p }}</option>
+            @endforeach
+        </select>
     </div>
     <button type="submit" class="btn btn-primary">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -58,7 +67,46 @@
     </div>
 </div>
 
-<div class="grid-2">
+{{-- Detail kunjungan --}}
+<div class="card">
+    <div class="card-body">
+        <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+            Detail Kunjungan
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Tamu</th><th>Perusahaan</th>
+                        <th>Check-In</th><th>Check-Out</th><th>Tujuan</th><th>Bertemu</th>
+                        <th>Kendaraan</th><th>Catatan</th><th>Kode</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse ($kunjungan as $visit)
+                    <tr>
+                        <td><a href="{{ route('tamu.show', $visit) }}" class="cell-main" style="color:var(--brand);text-decoration:underline">{{ $visit->guest->name }}</a></td>
+                        <td>{{ $visit->guest->company ?: '—' }}</td>
+                        <td>{{ $visit->check_in_at->translatedFormat('d M H:i') }}</td>
+                        <td>{{ $visit->check_out_at?->translatedFormat('d M H:i') ?? '—' }}</td>
+                        <td>{{ $visit->purpose }}</td>
+                        <td>{{ $visit->meet_with ?: '—' }}</td>
+                        <td>{{ mb_strtoupper((string) $visit->vehicle_number) }}</td>
+                        <td>{{ $visit->notes ?: '—' }}</td>
+                        <td><span class="badge badge-code">{{ $visit->guest->guest_code }}</span></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="9" class="table-empty">Tidak ada kunjungan pada periode ini.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+        {{ $kunjungan->links() }}
+    </div>
+</div>
+
+<div class="grid-2 mt-2">
     {{-- Rekap tujuan --}}
     <div class="card">
         <div class="card-body">
@@ -122,43 +170,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
-</div>
-
-{{-- Detail kunjungan --}}
-<div class="card mt-2">
-    <div class="card-body">
-        <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
-            Detail Kunjungan
-        </div>
-        <div class="table-wrap">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Kode</th><th>Tamu</th><th>Perusahaan</th><th>Departemen</th>
-                        <th>Check-In</th><th>Check-Out</th><th>Tujuan</th><th>Kendaraan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @forelse ($kunjungan as $visit)
-                    <tr>
-                        <td><span class="badge badge-code">{{ $visit->guest->guest_code }}</span></td>
-                        <td class="cell-main">{{ $visit->guest->name }}</td>
-                        <td>{{ $visit->guest->company ?: '—' }}</td>
-                        <td>{{ $visit->department?->name ?: '—' }}</td>
-                        <td>{{ $visit->check_in_at->translatedFormat('d M H:i') }}</td>
-                        <td>{{ $visit->check_out_at?->translatedFormat('d M H:i') ?? '—' }}</td>
-                        <td>{{ $visit->purpose }}</td>
-                        <td>{{ $visit->vehicle_number }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="8" class="table-empty">Tidak ada kunjungan pada periode ini.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-        {{ $kunjungan->links() }}
     </div>
 </div>
 @endsection

@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route('login'));
 
 /* ---------- Kiosk tablet tamu (login akun "Penerima Tamu" / admin) ---------- */
-Route::prefix('kiosk')->name('kiosk.')->middleware(['auth', 'kiosk.guard', 'throttle:60,1'])->group(function () {
+Route::prefix('kiosk')->name('kiosk.')->middleware(['auth', 'kiosk.guard', 'throttle:kiosk'])->group(function () {
     Route::get('/', [KioskController::class, 'index'])->name('index');
 
     // Layar Daftar Tamu
@@ -31,7 +31,7 @@ Route::prefix('kiosk')->name('kiosk.')->middleware(['auth', 'kiosk.guard', 'thro
     // Registrasi tamu baru
     Route::get('/registrasi', [KioskController::class, 'registrasi'])->name('registrasi');
     Route::post('/registrasi', [KioskController::class, 'storeRegistrasi'])
-        ->middleware('throttle:10,1')->name('registrasi.store');
+        ->middleware('throttle:kiosk-action')->name('registrasi.store');
 
     // Sudah pernah daftar
     Route::get('/cari', [KioskController::class, 'cari'])->name('cari');
@@ -39,12 +39,12 @@ Route::prefix('kiosk')->name('kiosk.')->middleware(['auth', 'kiosk.guard', 'thro
     // Check-in kunjungan
     Route::get('/checkin/{guest}', [KioskController::class, 'checkinForm'])->name('checkin.form');
     Route::post('/checkin/{guest}', [KioskController::class, 'checkinStore'])
-        ->middleware('throttle:10,1')->name('checkin.store');
+        ->middleware('throttle:kiosk-action')->name('checkin.store');
 
     // Check-out
     Route::get('/checkout', [KioskController::class, 'checkoutIndex'])->name('checkout');
     Route::post('/checkout/{visit}', [KioskController::class, 'checkoutStore'])
-        ->middleware('throttle:10,1')->name('checkout.store');
+        ->middleware('throttle:kiosk-action')->name('checkout.store');
 });
 
 /* ---------- Auth management ---------- */

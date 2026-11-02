@@ -34,7 +34,7 @@
                             <small>
                                 {{ $visit->guest->company ?: 'Tanpa perusahaan' }}
                                 &middot; {{ $visit->purpose }}
-                                &middot; {{ $visit->vehicle_number }}
+                                &middot; {{ mb_strtoupper((string) $visit->vehicle_number) }}
                             </small>
                             <small>Check-in: {{ $visit->check_in_at->translatedFormat('d M Y H:i') }}</small>
                         </span>

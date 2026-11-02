@@ -11,11 +11,13 @@ class LaporanController extends Controller
     {
         $dari = $request->query('dari', now()->startOfMonth()->format('Y-m-d'));
         $sampai = $request->query('sampai', now()->format('Y-m-d'));
+        $tujuan = trim((string) $request->query('tujuan', ''));
 
         // Scope: akun departemen hanya melihat kunjungan departemennya
         $base = Visit::forUser($request->user())
             ->whereDate('check_in_at', '>=', $dari)
-            ->whereDate('check_in_at', '<=', $sampai);
+            ->whereDate('check_in_at', '<=', $sampai)
+            ->when($tujuan !== '', fn ($q) => $q->where('purpose', $tujuan));
 
         $totalKunjungan = (clone $base)->count();
         $totalTamuUnik = (clone $base)->distinct('guest_id')->count('guest_id');
@@ -48,24 +50,29 @@ class LaporanController extends Controller
             ->orderBy('tanggal')
             ->get();
 
+        // Daftar tujuan unik utk dropdown filter (di-scope per hak akses user)
+        $tujuanList = Visit::forUser($request->user())->distinct()->orderBy('purpose')->pluck('purpose');
+
         // Detail kunjungan
         $kunjungan = (clone $base)->with(['guest', 'department'])->latest('check_in_at')->paginate(10)->withQueryString();
 
         return view('laporan.index', compact(
-            'dari', 'sampai', 'totalKunjungan', 'totalTamuUnik',
+            'dari', 'sampai', 'tujuan', 'tujuanList', 'totalKunjungan', 'totalTamuUnik',
             'totalSedangDidalam', 'rekapTujuan', 'rekapPerusahaan', 'rekapHarian', 'kunjungan'
         ));
     }
 
-    /** Export laporan CSV. */
+    /** Export laporan CSV — kolom mengikuti urutan tabel Detail Kunjungan. */
     public function export(Request $request)
     {
         $dari = $request->query('dari', now()->startOfMonth()->format('Y-m-d'));
         $sampai = $request->query('sampai', now()->format('Y-m-d'));
+        $tujuan = trim((string) $request->query('tujuan', ''));
 
         $visits = Visit::with(['guest', 'department'])->forUser($request->user())
             ->whereDate('check_in_at', '>=', $dari)
             ->whereDate('check_in_at', '<=', $sampai)
+            ->when($tujuan !== '', fn ($q) => $q->where('purpose', $tujuan))
             ->orderBy('check_in_at')
             ->get();
 
@@ -74,21 +81,20 @@ class LaporanController extends Controller
         return response()->streamDownload(function () use ($visits) {
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($out, ['Kode Tamu', 'Nama', 'No HP', 'Perusahaan', 'Departemen', 'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan']);
+            fputcsv($out, ['Nama', 'No HP', 'Perusahaan', 'Check-In', 'Check-Out', 'Tujuan', 'Bertemu', 'No Kendaraan', 'Catatan', 'Kode Tamu']);
 
             foreach ($visits as $v) {
                 fputcsv($out, [
-                    $v->guest->guest_code,
                     $v->guest->name,
                     $v->guest->phone,
                     $v->guest->company,
-                    $v->department?->name,
                     $v->check_in_at?->format('d M Y H:i'),
                     $v->check_out_at?->format('d M Y H:i'),
                     $v->purpose,
-                    $v->vehicle_number,
                     $v->meet_with,
+                    mb_strtoupper((string) $v->vehicle_number),
                     $v->notes,
+                    $v->guest->guest_code,
                 ]);
             }
 

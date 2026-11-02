@@ -48,6 +48,53 @@
     </div>
 </div>
 
+{{-- Kunjungan terbaru --}}
+<div class="card mt-2">
+    <div class="card-body">
+        <div class="card-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            Kunjungan Terbaru
+        </div>
+        <div class="table-wrap">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Kode</th>
+                        <th>Tamu</th>
+                        <th>Tujuan</th>
+                        <th>No. Kendaraan</th>
+                        <th>Check-In</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @forelse ($terbaru as $visit)
+                    <tr>
+                        <td><span class="badge badge-code">{{ $visit->guest->guest_code }}</span></td>
+                        <td>
+                            <div class="cell-main">{{ $visit->guest->name }}</div>
+                            <div class="cell-sub">{{ $visit->guest->company ?: '—' }}</div>
+                        </td>
+                        <td>{{ $visit->purpose }}</td>
+                        <td>{{ mb_strtoupper((string) $visit->vehicle_number) }}</td>
+                        <td>{{ $visit->check_in_at->translatedFormat('d M Y H:i') }}</td>
+                        <td>
+                            @if ($visit->check_out_at)
+                                <span class="badge badge-out">Check-out {{ $visit->check_out_at->translatedFormat('H:i') }}</span>
+                            @else
+                                <span class="badge badge-in">Di Dalam</span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="6" class="table-empty">Belum ada data kunjungan.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <div class="grid-2">
     {{-- Grafik 7 hari --}}
     <div class="card">
@@ -106,53 +153,6 @@
                 <p class="text-mute mt-1">Belum ada tamu yang sedang berada di dalam area.</p>
             @endforelse
             </div>
-        </div>
-    </div>
-</div>
-
-{{-- Kunjungan terbaru --}}
-<div class="card mt-2">
-    <div class="card-body">
-        <div class="card-title">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            Kunjungan Terbaru
-        </div>
-        <div class="table-wrap">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Kode</th>
-                        <th>Tamu</th>
-                        <th>Tujuan</th>
-                        <th>No. Kendaraan</th>
-                        <th>Check-In</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @forelse ($terbaru as $visit)
-                    <tr>
-                        <td><span class="badge badge-code">{{ $visit->guest->guest_code }}</span></td>
-                        <td>
-                            <div class="cell-main">{{ $visit->guest->name }}</div>
-                            <div class="cell-sub">{{ $visit->guest->company ?: '—' }}</div>
-                        </td>
-                        <td>{{ $visit->purpose }}</td>
-                        <td>{{ $visit->vehicle_number }}</td>
-                        <td>{{ $visit->check_in_at->translatedFormat('d M Y H:i') }}</td>
-                        <td>
-                            @if ($visit->check_out_at)
-                                <span class="badge badge-out">Check-out {{ $visit->check_out_at->translatedFormat('H:i') }}</span>
-                            @else
-                                <span class="badge badge-in">Di Dalam</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6" class="table-empty">Belum ada data kunjungan.</td></tr>
-                @endforelse
-                </tbody>
-            </table>
         </div>
     </div>
 </div>

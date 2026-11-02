@@ -49,9 +49,10 @@ class FiturBaruTest extends TestCase
         $res = $this->actingAs($admin)->get('/data-tamu');
         $res->assertOk();
 
-        $this->assertSame(
+        // Kode tamu tidak lagi tampil di tabel → hitung via data view
+        $this->assertCount(
             10,
-            substr_count($res->content(), 'badge-code'),
+            $res->viewData('visits'),
             'Halaman 1 harus menampilkan tepat 10 baris'
         );
         $res->assertSee('>2</a>', false); // ada tautan ke halaman 2

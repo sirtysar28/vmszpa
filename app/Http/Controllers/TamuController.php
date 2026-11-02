@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\Visit;
+use Dompdf\Dompdf;
 use Illuminate\Http\Request;
+use Shuchkin\SimpleXLSXGen;
 
 class TamuController extends Controller
 {
     /** Data Tamu: daftar kunjungan (check-in/check-out) — dibatasi 10 baris/halaman. */
     public function index(Request $request)
     {
-        $query = Visit::with(['guest', 'department'])->forUser($request->user());
+        $query = Visit::with('guest')->forUser($request->user());
 
         // Pencarian
         $search = trim((string) $request->query('q', ''));
@@ -63,10 +65,10 @@ class TamuController extends Controller
         return back()->with('success', "Data kunjungan {$name} telah dihapus.");
     }
 
-    /** Export CSV. */
+    /** Export data kunjungan: Excel (xlsx), PDF, atau CSV — mengikuti filter aktif. */
     public function export(Request $request)
     {
-        $query = Visit::with(['guest', 'department'])->forUser($request->user())->latest('check_in_at');
+        $query = Visit::with('guest')->forUser($request->user())->latest('check_in_at');
 
         if ($request->filled('q')) {
             $s = trim((string) $request->query('q'));
@@ -79,6 +81,11 @@ class TamuController extends Controller
                 })->orWhere('vehicle_number', 'like', "%{$s}%");
             });
         }
+        if ($request->query('status') === 'didalam') {
+            $query->whereNull('check_out_at');
+        } elseif ($request->query('status') === 'selesai') {
+            $query->whereNotNull('check_out_at');
+        }
         if ($request->filled('dari')) {
             $query->whereDate('check_in_at', '>=', $request->query('dari'));
         }
@@ -86,32 +93,83 @@ class TamuController extends Controller
             $query->whereDate('check_in_at', '<=', $request->query('sampai'));
         }
 
-        $filename = 'data-tamu-'.now()->format('Ymd-His').'.csv';
+        $visits = $query->get();
+        $filename = 'data-tamu-'.now()->format('Ymd-His');
 
-        return response()->streamDownload(function () use ($query) {
+        return match ($request->query('format', 'csv')) {
+            'xlsx' => $this->exportExcel($visits, $filename),
+            'pdf' => $this->exportPdf($visits, $filename),
+            default => $this->exportCsv($visits, $filename),
+        };
+    }
+
+    /** Baris tabel export (kolom lengkap, urutan konsisten di semua format). */
+    private function exportRows($visits): array
+    {
+        $rows = [[
+            'Kode Tamu', 'Nama', 'No HP', 'Perusahaan',
+            'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan',
+        ]];
+
+        foreach ($visits as $v) {
+            $rows[] = [
+                $v->guest->guest_code,
+                $v->guest->name,
+                $v->guest->phone,
+                $v->guest->company,
+                $v->check_in_at?->format('d M Y H:i'),
+                $v->check_out_at?->format('d M Y H:i'),
+                $v->purpose,
+                mb_strtoupper((string) $v->vehicle_number),
+                $v->meet_with,
+                $v->notes,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function exportExcel($visits, string $filename)
+    {
+        $xlsx = SimpleXLSXGen::fromArray($this->exportRows($visits));
+
+        $tmp = tempnam(sys_get_temp_dir(), 'vms-export-').'.xlsx';
+        $xlsx->saveAs($tmp);
+
+        return response()->download(
+            $tmp,
+            $filename.'.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        )->deleteFileAfterSend(true);
+    }
+
+    private function exportPdf($visits, string $filename)
+    {
+        $dompdf = new Dompdf;
+        $dompdf->loadHtml(view('tamu.export-pdf', [
+            'visits' => $visits,
+            'cetak' => now()->translatedFormat('d M Y H:i'),
+        ])->render());
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'.pdf"',
+        ]);
+    }
+
+    private function exportCsv($visits, string $filename)
+    {
+        return response()->streamDownload(function () use ($visits) {
             $out = fopen('php://output', 'w');
             fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8 utk Excel
-            fputcsv($out, ['Kode Tamu', 'Nama', 'No HP', 'Perusahaan', 'Departemen', 'Check-In', 'Check-Out', 'Tujuan', 'No Kendaraan', 'Bertemu', 'Catatan']);
 
-            $query->chunk(500, function ($visits) use ($out) {
-                foreach ($visits as $v) {
-                    fputcsv($out, [
-                        $v->guest->guest_code,
-                        $v->guest->name,
-                        $v->guest->phone,
-                        $v->guest->company,
-                        $v->department?->name,
-                        $v->check_in_at?->format('d M Y H:i'),
-                        $v->check_out_at?->format('d M Y H:i'),
-                        $v->purpose,
-                        $v->vehicle_number,
-                        $v->meet_with,
-                        $v->notes,
-                    ]);
-                }
-            });
+            foreach ($this->exportRows($visits) as $row) {
+                fputcsv($out, $row);
+            }
 
             fclose($out);
-        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+        }, $filename.'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

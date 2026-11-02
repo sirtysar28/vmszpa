@@ -54,7 +54,14 @@ class ManagementTest extends TestCase
         $this->actingAs($this->admin)
             ->get('/data-tamu')
             ->assertOk()
-            ->assertSee('Andi')
+            ->assertSee('Andi');
+
+        // Kode tamu disembunyikan dari tabel Data Tamu (update 2 Nov 2026) —
+        // tetap tampil di halaman detail kunjungan
+        $visit = Visit::where('guest_id', $guest->id)->first();
+        $this->actingAs($this->admin)
+            ->get("/data-tamu/{$visit->id}")
+            ->assertOk()
             ->assertSee('ZPA-ABC123');
     }
 

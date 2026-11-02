@@ -61,6 +61,11 @@ class KioskController extends Controller
             'identity_number.required' => 'Nomor identitas wajib diisi.',
         ]);
 
+        // Nama perusahaan selalu disimpan huruf kapital (kiosk & laporan jadi konsisten)
+        if (! empty($data['company'])) {
+            $data['company'] = strtoupper($data['company']);
+        }
+
         $guest = Guest::create($data + ['guest_code' => Guest::generateCode()]);
 
         return redirect()
@@ -126,6 +131,9 @@ class KioskController extends Controller
             'vehicle_number.required' => 'Nomor kendaraan wajib diisi.',
             'vehicle_number.min' => 'Nomor kendaraan minimal 3 karakter.',
         ]);
+
+        // Nomor kendaraan selalu disimpan huruf kapital (input kiosk & laporan konsisten)
+        $data['vehicle_number'] = mb_strtoupper(trim($data['vehicle_number']));
 
         $visit = Visit::create($data + [
             'guest_id' => $guest->id,

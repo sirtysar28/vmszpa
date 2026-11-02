@@ -18,4 +18,66 @@
 
     tick();
     setInterval(tick, 1000);
+
+    // ============================================================
+    // Menu operator kiosk — klik nama untuk menampilkan opsi keluar
+    // (pakai klik, bukan hover, supaya bisa dipakai di iPad)
+    // ============================================================
+    var userToggle = document.getElementById('kiosk-user-toggle');
+    var userMenu = document.getElementById('kiosk-user-menu');
+
+    function tutupMenuOperator() {
+        if (!userMenu) { return; }
+        userMenu.hidden = true;
+        if (userToggle) { userToggle.setAttribute('aria-expanded', 'false'); }
+    }
+
+    if (userToggle && userMenu) {
+        userToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var buka = userMenu.hidden;
+            userMenu.hidden = !buka;
+            userToggle.setAttribute('aria-expanded', buka ? 'true' : 'false');
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!userMenu.hidden && !userMenu.contains(e.target)) { tutupMenuOperator(); }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { tutupMenuOperator(); }
+        });
+    }
+
+    // ============================================================
+    // Kolom "Dari Perusahaan" (registrasi tamu) — otomatis huruf kapital
+    // ============================================================
+    var companyInput = document.getElementById('company');
+    if (companyInput) {
+        companyInput.addEventListener('input', function () {
+            var awal = this.selectionStart;
+            var akhir = this.selectionEnd;
+            var kapital = this.value.toUpperCase();
+            if (kapital !== this.value) {
+                this.value = kapital;
+                this.setSelectionRange(awal, akhir); // jaga posisi kursor
+            }
+        });
+    }
+
+    // ============================================================
+    // Kolom "Nomor Kendaraan" (check-in) — otomatis huruf kapital
+    // ============================================================
+    var vehicleInput = document.getElementById('vehicle_number');
+    if (vehicleInput) {
+        vehicleInput.addEventListener('input', function () {
+            var awal = this.selectionStart;
+            var akhir = this.selectionEnd;
+            var kapital = this.value.toUpperCase();
+            if (kapital !== this.value) {
+                this.value = kapital;
+                this.setSelectionRange(awal, akhir); // jaga posisi kursor
+            }
+        });
+    }
 })();

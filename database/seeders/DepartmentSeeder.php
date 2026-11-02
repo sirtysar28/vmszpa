@@ -3,13 +3,12 @@
 namespace Database\Seeders;
 
 use App\Models\Department;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 /**
- * Seeder departemen + akun contoh per departemen:
- * - manager  : atasan/manajer departemen (lihat data kunjungan departemen sendiri)
- * - petugas  : petugas/sekretariat departemen
+ * Seeder master departemen.
+ * (Update 2 Nov 2026: akun contoh manager/petugas tidak lagi dibuat —
+ * pengguna tinggal Admin + Penerima Tamu; akun lain dibuat manual lewat menu Pengguna.)
  *
  * Jalankan: php artisan db:seed --class=DepartmentSeeder
  */
@@ -29,46 +28,9 @@ class DepartmentSeeder extends Seeder
         ];
 
         foreach ($departments as $d) {
-            $dept = Department::updateOrCreate(['name' => $d['name']], ['code' => $d['code']]);
-
-            // Manager tiap departemen
-            $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '', $d['name']));
-            User::updateOrCreate(
-                ['email' => "manager.{$slug}@vmszpa.com"],
-                [
-                    'name' => 'Manager '.$d['name'],
-                    'password' => 'Manager@2026',
-                    'role' => 'manager',
-                    'department_id' => $dept->id,
-                    'is_active' => true,
-                ],
-            );
+            Department::updateOrCreate(['name' => $d['name']], ['code' => $d['code']]);
         }
 
-        // Petugas contoh (departemen Umum & Security)
-        foreach ([['umum', 'Umum'], ['security', 'Security']] as [$slug, $deptName]) {
-            $dept = Department::where('name', $deptName)->first();
-            User::updateOrCreate(
-                ['email' => "petugas.{$slug}@vmszpa.com"],
-                [
-                    'name' => 'Petugas '.$deptName,
-                    'password' => 'Petugas@2026',
-                    'role' => 'petugas',
-                    'department_id' => $dept->id,
-                    'is_active' => true,
-                ],
-            );
-        }
-
-        $this->command?->info('Departemen + akun manager/petugas contoh dibuat.');
-        $this->command?->table(
-            ['Email', 'Password', 'Role'],
-            [
-                ['manager.umum@vmszpa.com', 'Manager@2026', 'Manager Umum'],
-                ['manager.keuangan@vmszpa.com', 'Manager@2026', 'Manager Keuangan'],
-                ['petugas.umum@vmszpa.com', 'Petugas@2026', 'Petugas Umum'],
-                ['petugas.security@vmszpa.com', 'Petugas@2026', 'Petugas Security'],
-            ],
-        );
+        $this->command?->info('Master departemen dibuat/diperbarui ('.count($departments).' departemen).');
     }
 }

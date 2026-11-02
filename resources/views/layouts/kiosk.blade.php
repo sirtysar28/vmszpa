@@ -34,16 +34,26 @@
             <small id="kiosk-date">&nbsp;</small>
         </div>
 
-        {{-- Operator kiosk (akun Penerima Tamu) + keluar --}}
+        {{-- Operator kiosk (akun Penerima Tamu) — klik nama untuk membuka menu keluar --}}
         <div class="k-user">
-            <small>{{ auth()->user()->name }}</small>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" title="Keluar dari kiosk">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-                    Keluar
-                </button>
-            </form>
+            <button type="button" class="k-user-toggle" id="kiosk-user-toggle"
+                    aria-haspopup="true" aria-expanded="false" title="Menu operator">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>{{ auth()->user()->name }}</span>
+                <svg class="k-user-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+
+            <div class="k-user-menu" id="kiosk-user-menu" hidden>
+                <small>Operator Penerima Tamu</small>
+                <b>{{ auth()->user()->name }}</b>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" title="Keluar dari kiosk">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+                        Keluar
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </header>

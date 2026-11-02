@@ -35,7 +35,7 @@ body {
   background: linear-gradient(140deg, var(--k-brand-deep) 0%, var(--k-brand) 60%, #0a6dc2 100%);
   color: #fff; padding: 1.3rem 1.6rem;
   padding-left: max(1.6rem, env(safe-area-inset-left));
-  position: relative; overflow: hidden;
+  position: relative; /* popup menu operator mungkin keluar ke bawah header */
   flex: none;            /* JANGAN di-shrink flexbox — header harus selalu utuh */
   z-index: 10;           /* selalu di atas konten di bawahnya */
 }
@@ -59,25 +59,50 @@ body {
 .k-clock b { font-size: clamp(1.5rem, 3.5vw, 2.1rem); font-weight: 800; display: block; line-height: 1.1; }
 .k-clock small { color: #bfe0f8; font-size: .85rem; }
 
-/* Operator kiosk (akun Penerima Tamu) — chip + tombol keluar */
-.k-user {
-  display: flex; flex-direction: column; align-items: flex-end; gap: .3rem;
-  flex: none; text-align: right;
-}
-.k-user > small {
-  color: #cfe6fb; font-size: .74rem; font-weight: 600;
-  max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.k-user form { display: flex; }
-.k-user button {
-  display: inline-flex; align-items: center; gap: .35rem;
+/* Operator kiosk (akun Penerima Tamu) — chip nama, klik untuk menu keluar */
+.k-user { position: relative; flex: none; }
+.k-user-toggle {
+  display: inline-flex; align-items: center; gap: .45rem; max-width: 230px;
   background: rgba(255, 255, 255, .14); border: 1px solid rgba(255, 255, 255, .28);
-  color: #fff; font: 700 .72rem "Inter", "Segoe UI", system-ui, sans-serif;
-  padding: .38rem .75rem; border-radius: 999px; cursor: pointer;
+  color: #fff; font: 700 .78rem "Inter", "Segoe UI", system-ui, sans-serif;
+  padding: .45rem .85rem; border-radius: 999px; cursor: pointer;
   transition: background .15s;
 }
-.k-user button:hover { background: rgba(255, 255, 255, .26); }
-.k-user button svg { width: 14px; height: 14px; }
+.k-user-toggle:hover,
+.k-user-toggle[aria-expanded="true"] { background: rgba(255, 255, 255, .26); }
+.k-user-toggle > svg { width: 15px; height: 15px; flex: none; }
+.k-user-toggle span {
+  max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.k-user-caret { transition: transform .15s; }
+.k-user-toggle[aria-expanded="true"] .k-user-caret { transform: rotate(180deg); }
+
+/* Popup menu operator: muncul di bawah chip, tidak menggeser layout header */
+.k-user-menu {
+  position: absolute; top: calc(100% + .55rem); right: 0; z-index: 30;
+  min-width: 210px; padding: .9rem;
+  background: #fff; border-radius: 14px; box-shadow: 0 18px 40px rgba(5, 42, 82, .28);
+  color: var(--k-ink); text-align: left;
+  animation: k-user-menu-in .14s ease-out;
+}
+.k-user-menu[hidden] { display: none; }
+.k-user-menu small {
+  display: block; font-size: .66rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--k-mute); margin-bottom: .15rem;
+}
+.k-user-menu b { display: block; font-size: .92rem; margin-bottom: .7rem; word-break: break-word; }
+.k-user-menu button {
+  display: flex; align-items: center; justify-content: center; gap: .45rem; width: 100%;
+  background: #fee2e2; border: none; border-radius: 10px; cursor: pointer;
+  color: #b91c1c; font: 700 .82rem "Inter", "Segoe UI", system-ui, sans-serif;
+  padding: .55rem .8rem; transition: background .15s;
+}
+.k-user-menu button:hover { background: #fecaca; }
+.k-user-menu button svg { width: 15px; height: 15px; }
+@keyframes k-user-menu-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
 
 /* ============ KONTEN ============ */
 .k-main { flex: 1 0 auto; width: 100%; max-width: 1100px; margin: 0 auto; padding: 1.6rem 1.6rem 2rem; }
@@ -281,6 +306,7 @@ textarea.form-control { min-height: 110px; resize: vertical; }
   .k-clock { max-width: 62%; }
   .k-clock b { font-size: 1.1rem; }
   .k-clock small { font-size: .68rem; }
+  .k-user-toggle span { max-width: 90px; }
   .k-welcome h1 { font-size: 1.02rem; }
   .k-welcome small { font-size: .62rem; letter-spacing: .12em; }
 }

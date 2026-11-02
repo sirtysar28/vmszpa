@@ -37,7 +37,9 @@ class MasterTamuSmtpTest extends TestCase
         $res = $this->actingAs($admin)->get('/master-tamu');
         $res->assertOk()->assertSee('Master Data Tamu');
 
-        $this->assertSame(10, substr_count($res->content(), 'badge-code'), 'Master tamu 10 baris/halaman');
+        // Kode tamu disembunyikan dari tabel (update 2 Nov 2026) → hitung via data view
+        $this->assertCount(10, $res->viewData('guests'), 'Master tamu 10 baris/halaman');
+        $res->assertSee('>2</a>', false); // 14 data → ada halaman 2
     }
 
     public function test_admin_bisa_menambah_dan_mengubah_master_tamu(): void

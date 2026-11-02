@@ -51,7 +51,8 @@ class KioskFlowTest extends TestCase
         $response->assertSee('CHECK-IN');
         $response->assertSee('CHECK-OUT');
         $response->assertSee('Trijaya Solution');
-        $response->assertSee('Keluar'); // tombol keluar operator kiosk
+        $response->assertSee('kiosk-user-toggle'); // chip nama operator, klik untuk menu keluar
+        $response->assertSee('Keluar'); // opsi keluar di dalam popup menu operator
     }
 
     public function test_alur_lengkap_registrasi_checkin_checkout(): void
@@ -59,18 +60,19 @@ class KioskFlowTest extends TestCase
         // 1. Layar daftar tamu
         $this->actingAs($this->penerima)->get('/kiosk/daftar')->assertOk()->assertSee('Sudah pernah Daftar');
 
-        // 2. Registrasi tamu baru
+        // 2. Registrasi tamu baru (perusahaan otomatis disimpan huruf kapital)
         $response = $this->actingAs($this->penerima)->post('/kiosk/registrasi', [
             'name' => 'Andi Saputra',
             'phone' => '08188888',
             'vehicle_type' => 'Mobil',
-            'company' => 'PT. Andi Perkasa',
+            'company' => 'pt. andi perkasa',
             'identity_type' => 'KTP',
             'identity_number' => '3201234567890001',
         ]);
 
         $guest = Guest::where('name', 'Andi Saputra')->first();
         $this->assertNotNull($guest, 'Tamu harus tersimpan');
+        $this->assertSame('PT. ANDI PERKASA', $guest->company, 'Nama perusahaan tersimpan huruf kapital');
         $this->assertMatchesRegularExpression('/^ZPA-[A-Z0-9]{6}$/', $guest->guest_code);
         $response->assertRedirect(route('kiosk.checkin.form', $guest, absolute: false));
 
@@ -154,5 +156,62 @@ class KioskFlowTest extends TestCase
             ->get('/kiosk/cari?name=chan&phone=0811')
             ->assertOk()
             ->assertSee('Chandra');
+    }
+
+    public function test_checkout_banyak_tamu_berurutan_tidak_terkena_429(): void
+    {
+        // Regresi bug: throttle grup dan throttle route dulu berbagi bucket
+        // counter yang sama sehingga tiap POST checkout terhitung 2x — alur
+        // normal (buka daftar → checkout → redirect → ulangi) mendapat 429
+        // tepat pada tamu ke-3. Simulasikan 5 tamu berturut-turut.
+        $this->actingAs($this->penerima);
+
+        foreach (range(1, 5) as $i) {
+            $guest = Guest::create([
+                'guest_code' => Guest::generateCode(),
+                'name' => "Tamu Ke-{$i}",
+                'phone' => "08170000{$i}",
+                'vehicle_type' => 'Mobil',
+                'company' => "PT. Contoh {$i}",
+                'identity_type' => 'KTP',
+                'identity_number' => "320123456789000{$i}",
+            ]);
+
+            Visit::create([
+                'guest_id' => $guest->id,
+                'purpose' => 'Meeting',
+                'vehicle_number' => "B 1234 T{$i}",
+                'check_in_at' => now(),
+            ]);
+        }
+
+        foreach (range(1, 5) as $i) {
+            $this->get('/kiosk/checkout')->assertOk()->assertSee("Tamu Ke-{$i}");
+
+            $visit = Visit::whereNull('check_out_at')->first();
+            $this->post("/kiosk/checkout/{$visit->id}")
+                ->assertRedirect(route('kiosk.index', absolute: false));
+
+            $this->get('/kiosk')->assertOk(); // ikuti redirect layar sukses
+        }
+
+        $this->assertSame(0, Visit::whereNull('check_out_at')->count(), 'Semua tamu berhasil check-out');
+    }
+
+    public function test_halaman_429_menampilkan_pesan_ramah_dan_kembali_otomatis(): void
+    {
+        $this->actingAs($this->penerima);
+
+        // Habiskan limit browsing kiosk (120 permintaan/menit per user)
+        foreach (range(1, 120) as $i) {
+            $this->get('/kiosk')->assertOk();
+        }
+
+        $response = $this->get('/kiosk');
+
+        $response->assertStatus(429);
+        $response->assertSee('Sedikit Jeda Dulu, Ya');
+        $response->assertSee('detik lagi');
+        $response->assertSee(route('kiosk.index'));
     }
 }

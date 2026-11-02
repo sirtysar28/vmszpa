@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Setting;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,7 +30,33 @@ class AppServiceProvider extends ServiceProvider
         Paginator::defaultView('pagination::default');
         Paginator::defaultSimpleView('pagination::simple-default');
 
+        $this->configureRateLimiting();
         $this->applySmtpSettings();
+    }
+
+    /**
+     * Rate limiter bernama untuk kiosk.
+     *
+     * Setiap limiter bernama mendapat bucket counter TERPISAH. Sebelumnya
+     * throttle grup (60/menit) dan throttle route aksi (10/menit) tanpa nama
+     * memakai bucket yang sama, sehingga tiap POST checkout terhitung 2x dan
+     * checkout tamu ke-3 sudah terkena 429. Limit dipatok per user kiosk
+     * (perangkat resmi yang sudah login), bukan per IP.
+     */
+    private function configureRateLimiting(): void
+    {
+        // Browsing layar kiosk (halaman daftar, cari, form) — longgar karena
+        // hanya operator resmi yang bisa mengaksesnya.
+        RateLimiter::for('kiosk', function (Request $request) {
+            return Limit::perMinute(120)->by($request->user()?->id ?: $request->ip());
+        });
+
+        // Aksi tulis kiosk (registrasi / check-in / check-out) — cukup untuk
+        // lobi ramai (rata-rata 1 aksi tiap 2 detik tanpa henti), tetap
+        // memblokir spam dan submit berulang tak terkendali.
+        RateLimiter::for('kiosk-action', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
     }
 
     /**

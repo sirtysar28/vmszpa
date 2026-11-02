@@ -50,9 +50,10 @@
             </div>
             <div class="form-group">
                 <label class="form-label" for="company">Dari Perusahaan</label>
-                <input type="text" id="company" name="company" value="{{ old('company') }}"
-                       class="form-control" placeholder="Contoh: PT. Andi Perkasa">
-                <p class="form-hint">Kosongkan bila datang perorangan.</p>
+                <input type="text" id="company" name="company" value="{{ strtoupper((string) old('company')) }}"
+                       class="form-control" placeholder="Contoh: PT. ANDI PERKASA"
+                       style="text-transform:uppercase" autocomplete="organization">
+                <p class="form-hint">Kosongkan bila datang perorangan. Otomatis huruf kapital.</p>
             </div>
         </div>
 
